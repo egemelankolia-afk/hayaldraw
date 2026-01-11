@@ -377,6 +377,272 @@
             background: rgba(80, 120, 255, 0.95);
         }
 
+        /* Chat System */
+        .chat-container {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 400px;
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 12px 16px;
+            background: rgba(60, 60, 60, 0.5);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-title {
+            font-weight: bold;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .chat-close:hover {
+            color: #fff;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-message {
+            padding: 8px 12px;
+            background: rgba(60, 60, 60, 0.5);
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .chat-message.system {
+            background: rgba(255, 200, 0, 0.2);
+            color: #ffcc00;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .chat-message.admin {
+            background: rgba(255, 0, 0, 0.2);
+            border-left: 3px solid #ff0000;
+        }
+
+        .chat-username {
+            font-weight: bold;
+            color: #4a7fff;
+            margin-right: 6px;
+        }
+
+        .chat-username.admin {
+            color: #ff0000;
+        }
+
+        .chat-text {
+            color: #ddd;
+        }
+
+        .chat-input-container {
+            padding: 12px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #4a7fff;
+        }
+
+        .chat-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-send {
+            padding: 8px 16px;
+            background: #4a7fff;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .chat-send:hover {
+            background: #3a6fee;
+        }
+
+        .chat-send:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 400px;
+            width: 60px;
+            height: 60px;
+            background: #4a7fff;
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(74, 127, 255, 0.5);
+            z-index: 99;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(74, 127, 255, 0.7);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            position: fixed;
+            top: 180px;
+            left: 20px;
+            width: 300px;
+            max-height: 500px;
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        .admin-title {
+            font-weight: bold;
+            color: #ff0000;
+            font-size: 16px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .admin-user-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .admin-user {
+            padding: 8px 12px;
+            background: rgba(60, 60, 60, 0.5);
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        .admin-user-name {
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .admin-user-name.muted {
+            color: #ff6666;
+            text-decoration: line-through;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-btn.danger {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.4);
+        }
+
+        .admin-btn.danger:hover {
+            background: rgba(255, 0, 0, 0.4);
+        }
+
+        .admin-btn.warning {
+            background: rgba(255, 165, 0, 0.2);
+            border-color: rgba(255, 165, 0, 0.4);
+        }
+
+        .admin-btn.warning:hover {
+            background: rgba(255, 165, 0, 0.4);
+        }
+
+        .admin-btn.success {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: rgba(0, 255, 0, 0.4);
+        }
+
+        .admin-btn.success:hover {
+            background: rgba(0, 255, 0, 0.4);
+        }
+
         /* Help Overlay */
         .help-overlay {
             position: fixed;
@@ -571,6 +837,28 @@
     </div>
 
     <!-- Grid Toggle -->
+    <!-- Chat Toggle Button -->
+    <button class="chat-toggle" id="chatToggle">💬</button>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <div class="chat-title">💬 Chat</div>
+            <button class="chat-close" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type a message..." maxlength="200">
+            <button class="chat-send" id="chatSend" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-title">🛡️ Admin Panel</div>
+        <div class="admin-user-list" id="adminUserList"></div>
+    </div>
+
     <div class="grid-toggle" id="gridToggle" style="display: none;">Grid: OFF</div>
 
     <script>
@@ -613,6 +901,7 @@
 
         // Auth State
         let currentUser = null;
+        let isChatMuted = false;
 
         // Canvas State
         let canvas, ctx, offscreenCanvas, offscreenCtx;
@@ -1223,6 +1512,270 @@
                 console.error('Failed to load canvas:', error);
             }
         }
+        // ============================================
+        // CHAT SYSTEM
+        // ============================================
+        
+        function toggleChat() {
+            const container = document.getElementById('chatContainer');
+            const toggle = document.getElementById('chatToggle');
+            
+            if (container.style.display === 'none' || !container.style.display) {
+                container.style.display = 'flex';
+                toggle.style.display = 'none';
+            } else {
+                container.style.display = 'none';
+                toggle.style.display = 'flex';
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isChatMuted) return;
+            
+            try {
+                await database.ref('chat').push({
+                    username: currentUser.username,
+                    message: message,
+                    timestamp: Date.now()
+                });
+                
+                input.value = '';
+            } catch (error) {
+                console.error('Failed to send message:', error);
+                showNotification('Failed to send message');
+            }
+        }
+
+        function setupChatListeners() {
+            // Listen for new messages
+            database.ref('chat').limitToLast(50).on('child_added', (snapshot) => {
+                const data = snapshot.val();
+                displayChatMessage(data);
+            });
+
+            // Enter key to send
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        }
+
+        function displayChatMessage(data) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'chat-message';
+            
+            const isAdmin = data.username === 'admin';
+            const isSystem = data.username === 'SYSTEM';
+            
+            if (isAdmin) messageEl.classList.add('admin');
+            if (isSystem) messageEl.classList.add('system');
+            
+            if (isSystem) {
+                messageEl.innerHTML = `<span class="chat-text">${escapeHtml(data.message)}</span>`;
+            } else {
+                messageEl.innerHTML = `
+                    <span class="chat-username ${isAdmin ? 'admin' : ''}">${escapeHtml(data.username)}:</span>
+                    <span class="chat-text">${escapeHtml(data.message)}</span>
+                `;
+            }
+            
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // Keep only last 100 messages in DOM
+            while (messagesDiv.children.length > 100) {
+                messagesDiv.removeChild(messagesDiv.firstChild);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function checkMuteStatus() {
+            try {
+                const snapshot = await database.ref('muted/' + currentUser.username).once('value');
+                isChatMuted = snapshot.val() === true;
+                
+                const input = document.getElementById('chatInput');
+                const send = document.getElementById('chatSend');
+                
+                if (isChatMuted) {
+                    input.disabled = true;
+                    send.disabled = true;
+                    input.placeholder = 'You are muted';
+                } else {
+                    input.disabled = false;
+                    send.disabled = false;
+                    input.placeholder = 'Type a message...';
+                }
+
+                // Listen for mute status changes
+                database.ref('muted/' + currentUser.username).on('value', (snapshot) => {
+                    isChatMuted = snapshot.val() === true;
+                    input.disabled = isChatMuted;
+                    send.disabled = isChatMuted;
+                    input.placeholder = isChatMuted ? 'You are muted' : 'Type a message...';
+                });
+            } catch (error) {
+                console.error('Failed to check mute status:', error);
+            }
+        }
+
+        // ============================================
+        // ADMIN FUNCTIONS
+        // ============================================
+        
+        async function muteUser(username) {
+            if (currentUser.username !== 'admin') return;
+            
+            try {
+                await database.ref('muted/' + username).set(true);
+                await database.ref('chat').push({
+                    username: 'SYSTEM',
+                    message: `${username} has been muted by admin`,
+                    timestamp: Date.now()
+                });
+                showNotification(`Muted ${username}`);
+                await refreshAdminPanel();
+            } catch (error) {
+                console.error('Failed to mute user:', error);
+                showNotification('Failed to mute user');
+            }
+        }
+
+        async function unmuteUser(username) {
+            if (currentUser.username !== 'admin') return;
+            
+            try {
+                await database.ref('muted/' + username).remove();
+                await database.ref('chat').push({
+                    username: 'SYSTEM',
+                    message: `${username} has been unmuted by admin`,
+                    timestamp: Date.now()
+                });
+                showNotification(`Unmuted ${username}`);
+                await refreshAdminPanel();
+            } catch (error) {
+                console.error('Failed to unmute user:', error);
+                showNotification('Failed to unmute user');
+            }
+        }
+
+        async function deleteUserAccount(username) {
+            if (currentUser.username !== 'admin') return;
+            if (!confirm(`Delete account "${username}"? This cannot be undone!`)) return;
+            
+            try {
+                // Find and delete user
+                const usersSnapshot = await database.ref('users').once('value');
+                const users = usersSnapshot.val();
+                
+                for (const uid in users) {
+                    if (users[uid].username === username) {
+                        await database.ref('users/' + uid).remove();
+                        await database.ref('muted/' + username).remove();
+                        await database.ref('online/' + username).remove();
+                        
+                        await database.ref('chat').push({
+                            username: 'SYSTEM',
+                            message: `${username}'s account has been deleted by admin`,
+                            timestamp: Date.now()
+                        });
+                        
+                        showNotification(`Deleted ${username}'s account`);
+                        await refreshAdminPanel();
+                        break;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to delete account:', error);
+                showNotification('Failed to delete account');
+            }
+        }
+
+        async function showAdminPanel() {
+            if (currentUser.username !== 'admin') return;
+            
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = 'flex';
+            
+            await refreshAdminPanel();
+        }
+
+        async function refreshAdminPanel() {
+            if (currentUser.username !== 'admin') return;
+            
+            try {
+                const usersSnapshot = await database.ref('users').once('value');
+                const mutedSnapshot = await database.ref('muted').once('value');
+                
+                const users = usersSnapshot.val() || {};
+                const muted = mutedSnapshot.val() || {};
+                
+                const userList = document.getElementById('adminUserList');
+                userList.innerHTML = '';
+                
+                let userCount = 0;
+                for (const uid in users) {
+                    const user = users[uid];
+                    if (user.username === 'admin') continue;
+                    
+                    userCount++;
+                    const isMuted = muted[user.username] === true;
+                    
+                    const userEl = document.createElement('div');
+                    userEl.className = 'admin-user';
+                    userEl.innerHTML = `
+                        <div class="admin-user-name ${isMuted ? 'muted' : ''}">${escapeHtml(user.username)} ${isMuted ? '🔇' : ''}</div>
+                        <div class="admin-actions">
+                            ${isMuted ? 
+                                `<button class="admin-btn success" onclick="unmuteUser('${escapeHtml(user.username)}')">Unmute</button>` :
+                                `<button class="admin-btn warning" onclick="muteUser('${escapeHtml(user.username)}')">Mute</button>`
+                            }
+                            <button class="admin-btn danger" onclick="deleteUserAccount('${escapeHtml(user.username)}')">Delete</button>
+                        </div>
+                    `;
+                    
+                    userList.appendChild(userEl);
+                }
+
+                if (userCount === 0) {
+                    userList.innerHTML = '<div style="color: #888; text-align: center; padding: 20px;">No users yet</div>';
+                }
+            } catch (error) {
+                console.error('Failed to refresh admin panel:', error);
+            }
+        }
+
+        // Add chat initialization to startApp
+        const originalStartApp = startApp;
+        startApp = async function() {
+            await originalStartApp();
+            
+            // Show chat toggle
+            document.getElementById('chatToggle').style.display = 'flex';
+            
+            // Setup chat
+            setupChatListeners();
+            await checkMuteStatus();
+            
+            // Show admin panel if admin
+            if (currentUser.username === 'admin') {
+                await showAdminPanel();
+                // Send admin login message
+                await database.ref('chat').push({
+                    username: 'SYSTEM',
+                    message: '🛡️ Admin has joined the server',
+                    timestamp: Date.now()
+                });
+            }
+        };
     </script>
 </body>
 </html>
