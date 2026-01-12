@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+al <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1489,22 +1489,45 @@
         }
 
         let chatListenersSetup = false;
+        let displayedMessageIds = new Set();
         
         function setupChatListeners() {
             // Prevent setting up listeners multiple times
             if (chatListenersSetup) return;
             chatListenersSetup = true;
             
-            // Listen for new messages
+            // Clear any existing listeners first
+            database.ref('chat').off('child_added');
+            
+            // Listen for new messages (only last 50 on initial load)
             database.ref('chat').limitToLast(50).on('child_added', (snapshot) => {
+                const messageId = snapshot.key;
+                
+                // Skip if already displayed
+                if (displayedMessageIds.has(messageId)) {
+                    return;
+                }
+                
+                displayedMessageIds.add(messageId);
                 const data = snapshot.val();
                 displayChatMessage(data);
+                
+                // Clean up old IDs (keep only last 100)
+                if (displayedMessageIds.size > 100) {
+                    const oldIds = Array.from(displayedMessageIds).slice(0, displayedMessageIds.size - 100);
+                    oldIds.forEach(id => displayedMessageIds.delete(id));
+                }
             });
 
             // Enter key to send
-            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            const chatInput = document.getElementById('chatInput');
+            const sendHandler = (e) => {
                 if (e.key === 'Enter') sendMessage();
-            });
+            };
+            
+            // Remove old listener if exists
+            chatInput.removeEventListener('keypress', sendHandler);
+            chatInput.addEventListener('keypress', sendHandler);
         }
 
         function displayChatMessage(data) {
@@ -1869,20 +1892,35 @@
                         `;
                     }
                     
+                    const muteBtn = document.createElement('button');
+                    muteBtn.className = isMuted && !muteExpired ? 'admin-btn success' : 'admin-btn warning';
+                    muteBtn.textContent = isMuted && !muteExpired ? 'Unmute' : 'Mute';
+                    muteBtn.onclick = () => {
+                        if (isMuted && !muteExpired) {
+                            unmuteUser(user.username);
+                        } else {
+                            muteUser(user.username);
+                        }
+                    };
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'admin-btn danger';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.onclick = () => deleteUserAccount(user.username);
+                    
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'admin-actions';
+                    actionsDiv.appendChild(muteBtn);
+                    actionsDiv.appendChild(deleteBtn);
+                    
                     userEl.innerHTML = `
                         <div>
                             <div class="admin-user-name ${isMuted && !muteExpired ? 'muted' : ''}">${escapeHtml(user.username)} ${isMuted && !muteExpired ? '🔇' : ''}</div>
                             ${muteInfo}
                         </div>
-                        <div class="admin-actions">
-                            ${isMuted && !muteExpired ? 
-                                `<button class="admin-btn success" onclick="unmuteUser('${escapeHtml(user.username)}')">Unmute</button>` :
-                                `<button class="admin-btn warning" onclick="muteUser('${escapeHtml(user.username)}')">Mute</button>`
-                            }
-                            <button class="admin-btn danger" onclick="deleteUserAccount('${escapeHtml(user.username)}')">Delete</button>
-                        </div>
                     `;
                     
+                    userEl.appendChild(actionsDiv);
                     userList.appendChild(userEl);
                 }
 
@@ -1897,3 +1935,4 @@
     </script>
 </body>
 </html>
+
