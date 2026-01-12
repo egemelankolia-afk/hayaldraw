@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+al <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -377,7 +377,7 @@
             background: rgba(80, 120, 255, 0.95);
         }
 
-        /* Chat System */
+                /* Chat System */
         .chat-container {
             position: fixed;
             bottom: 90px;
@@ -389,8 +389,18 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             z-index: 100;
-            display: none;
+
+            display: flex;
             flex-direction: column;
+
+            opacity: 0.5;                          /* default 50% */
+            transition: opacity 0.6s ease;         /* gradual fade OUT */
+        }
+
+        /* Instant 100% when hovering chat */
+        .chat-container:hover {
+            opacity: 1;
+            transition: opacity 0s;                /* instant fade IN */
         }
 
         .chat-header {
@@ -409,23 +419,19 @@
             font-size: 14px;
         }
 
+        /* Close button kept purely cosmetic (does nothing now) */
         .chat-close {
             background: none;
             border: none;
             color: #888;
             font-size: 20px;
-            cursor: pointer;
+            cursor: default;
             padding: 0;
             width: 24px;
             height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: color 0.2s;
-        }
-
-        .chat-close:hover {
-            color: #fff;
         }
 
         .chat-messages {
@@ -518,31 +524,6 @@
         .chat-send:disabled {
             background: #333;
             cursor: not-allowed;
-        }
-
-        .chat-toggle {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 60px;
-            height: 60px;
-            background: #4a7fff;
-            border: none;
-            border-radius: 50%;
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(74, 127, 255, 0.5);
-            z-index: 99;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .chat-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(74, 127, 255, 0.7);
         }
 
         /* Admin Panel */
@@ -646,7 +627,7 @@
         /* Help Overlay */
         .help-overlay {
             position: fixed;
-            bottom: 90px;
+            top: 90px;
             left: 20px;
             background: rgba(40, 40, 40, 0.95);
             backdrop-filter: blur(10px);
