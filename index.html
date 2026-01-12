@@ -625,44 +625,6 @@ al <!DOCTYPE html>
         }
 
         /* Help Overlay */
-        .help-overlay {
-            position: fixed;
-            top: 90px;
-            left: 20px;
-            background: rgba(40, 40, 40, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 16px;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 13px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            max-width: 250px;
-        }
-
-        .help-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .help-item {
-            margin-bottom: 6px;
-            color: #ccc;
-            line-height: 1.4;
-        }
-
-        .help-key {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            margin-right: 4px;
-        }
-
         /* Pixel Indicator */
         .pixel-indicator {
             position: absolute;
@@ -802,16 +764,6 @@ al <!DOCTYPE html>
     </div>
 
     <!-- Help -->
-    <div class="help-overlay" id="helpOverlay" style="display: none;">
-        <div class="help-title">Controls</div>
-        <div class="help-item"><span class="help-key">Click</span> Place pixel</div>
-        <div class="help-item"><span class="help-key">Shift+Drag</span> Brush mode</div>
-        <div class="help-item"><span class="help-key">Drag</span> Pan view</div>
-        <div class="help-item"><span class="help-key">Scroll</span> Zoom in/out</div>
-        <div class="help-item"><span class="help-key">1-9</span> Quick color</div>
-        <div class="help-item"><span class="help-key">G</span> Toggle grid</div>
-    </div>
-
     <!-- Color Palette -->
     <div class="palette-container" id="paletteContainer" style="display: none;">
         <div class="palette-grid" id="colorPalette"></div>
@@ -1023,7 +975,6 @@ al <!DOCTYPE html>
             document.getElementById('coordsDisplay').style.display = 'none';
             document.getElementById('zoomDisplay').style.display = 'none';
             document.getElementById('onlinePlayers').style.display = 'none';
-            document.getElementById('helpOverlay').style.display = 'none';
             document.getElementById('paletteContainer').style.display = 'none';
             document.getElementById('gridToggle').style.display = 'none';
             
@@ -1046,7 +997,6 @@ al <!DOCTYPE html>
             document.getElementById('coordsDisplay').style.display = 'block';
             document.getElementById('zoomDisplay').style.display = 'block';
             document.getElementById('onlinePlayers').style.display = 'block';
-            document.getElementById('helpOverlay').style.display = 'block';
             document.getElementById('paletteContainer').style.display = 'block';
             document.getElementById('gridToggle').style.display = 'block';
 
@@ -1320,25 +1270,14 @@ al <!DOCTYPE html>
         }
 
         function handleKeyDown(e) {
+            // Keep Shift for brush mode
             if (e.key === 'Shift') isShiftPressed = true;
             
-            if (e.key >= '1' && e.key <= '9') {
-                const index = parseInt(e.key) - 1;
-                if (index < COLORS.length) {
-                    const btn = document.querySelectorAll('.color-btn')[index];
-                    selectColor(COLORS[index], btn);
-                }
+            // Keep G for grid toggle
+            if (e.key === 'g' || e.key === 'G') {
+                toggleGrid();
+                needsRender = true;
             }
-            
-            if (e.key === 'g' || e.key === 'G') toggleGrid();
-            
-            const speed = 50 / zoom;
-            if (e.key === 'w' || e.key === 'W') viewportY -= speed;
-            if (e.key === 's' || e.key === 'S') viewportY += speed;
-            if (e.key === 'a' || e.key === 'A') viewportX -= speed;
-            if (e.key === 'd' || e.key === 'D') viewportX += speed;
-            
-            needsRender = true;
         }
 
         function handleKeyUp(e) {
@@ -1549,7 +1488,13 @@ al <!DOCTYPE html>
             }
         }
 
+        let chatListenersSetup = false;
+        
         function setupChatListeners() {
+            // Prevent setting up listeners multiple times
+            if (chatListenersSetup) return;
+            chatListenersSetup = true;
+            
             // Listen for new messages
             database.ref('chat').limitToLast(50).on('child_added', (snapshot) => {
                 const data = snapshot.val();
@@ -1600,15 +1545,29 @@ al <!DOCTYPE html>
         async function checkMuteStatus() {
             try {
                 const snapshot = await database.ref('muted/' + currentUser.username).once('value');
-                isChatMuted = snapshot.val() === true;
+                const muteData = snapshot.val();
                 
                 const input = document.getElementById('chatInput');
                 const send = document.getElementById('chatSend');
                 
+                // Check if mute has expired
+                if (muteData && muteData.muteUntil && Date.now() > muteData.muteUntil) {
+                    // Mute expired, remove it
+                    await database.ref('muted/' + currentUser.username).remove();
+                    isChatMuted = false;
+                } else {
+                    isChatMuted = !!muteData;
+                }
+                
                 if (isChatMuted) {
                     input.disabled = true;
                     send.disabled = true;
-                    input.placeholder = 'You are muted';
+                    if (muteData.muteUntil) {
+                        const expiryDate = new Date(muteData.muteUntil).toLocaleString();
+                        input.placeholder = `Muted until ${expiryDate}`;
+                    } else {
+                        input.placeholder = 'You are permanently muted';
+                    }
                 } else {
                     input.disabled = false;
                     send.disabled = false;
@@ -1616,11 +1575,30 @@ al <!DOCTYPE html>
                 }
 
                 // Listen for mute status changes
-                database.ref('muted/' + currentUser.username).on('value', (snapshot) => {
-                    isChatMuted = snapshot.val() === true;
+                database.ref('muted/' + currentUser.username).on('value', async (snapshot) => {
+                    const data = snapshot.val();
+                    
+                    // Check expiration
+                    if (data && data.muteUntil && Date.now() > data.muteUntil) {
+                        await database.ref('muted/' + currentUser.username).remove();
+                        isChatMuted = false;
+                    } else {
+                        isChatMuted = !!data;
+                    }
+                    
                     input.disabled = isChatMuted;
                     send.disabled = isChatMuted;
-                    input.placeholder = isChatMuted ? 'You are muted' : 'Type a message...';
+                    
+                    if (isChatMuted && data) {
+                        if (data.muteUntil) {
+                            const expiryDate = new Date(data.muteUntil).toLocaleString();
+                            input.placeholder = `Muted until ${expiryDate}`;
+                        } else {
+                            input.placeholder = 'You are permanently muted';
+                        }
+                    } else {
+                        input.placeholder = 'Type a message...';
+                    }
                 });
             } catch (error) {
                 console.error('Failed to check mute status:', error);
@@ -1634,19 +1612,95 @@ al <!DOCTYPE html>
         async function muteUser(username) {
             if (currentUser.username !== 'admin') return;
             
-            try {
-                await database.ref('muted/' + username).set(true);
-                await database.ref('chat').push({
-                    username: 'SYSTEM',
-                    message: `${username} has been muted by admin`,
-                    timestamp: Date.now()
-                });
-                showNotification(`Muted ${username}`);
-                await refreshAdminPanel();
-            } catch (error) {
-                console.error('Failed to mute user:', error);
-                showNotification('Failed to mute user');
-            }
+            // Create modal for mute reason
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: #2a2a2a; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+                    <h3 style="color: #fff; margin: 0 0 20px 0;">Mute User: ${username}</h3>
+                    
+                    <label style="color: #ccc; display: block; margin-bottom: 8px;">Reason:</label>
+                    <textarea id="muteReason" placeholder="Why are you muting this user?" 
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #444; 
+                        border-radius: 6px; color: #fff; font-size: 14px; min-height: 80px; resize: vertical;"
+                        maxlength="200"></textarea>
+                    
+                    <label style="color: #ccc; display: block; margin: 16px 0 8px 0;">Duration:</label>
+                    <select id="muteDuration" style="width: 100%; padding: 10px; background: #1a1a1a; 
+                        border: 2px solid #444; border-radius: 6px; color: #fff; font-size: 14px;">
+                        <option value="3600000">1 hour</option>
+                        <option value="21600000">6 hours</option>
+                        <option value="86400000">24 hours</option>
+                        <option value="604800000">7 days</option>
+                        <option value="2592000000">30 days</option>
+                        <option value="permanent">Permanent</option>
+                    </select>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button id="confirmMute" style="flex: 1; padding: 12px; background: #ff6600; 
+                            border: none; border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer;">
+                            Mute User
+                        </button>
+                        <button id="cancelMute" style="flex: 1; padding: 12px; background: #444; 
+                            border: none; border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle confirm
+            document.getElementById('confirmMute').onclick = async () => {
+                const reason = document.getElementById('muteReason').value.trim() || 'No reason provided';
+                const durationStr = document.getElementById('muteDuration').value;
+                const duration = durationStr === 'permanent' ? null : parseInt(durationStr);
+                const muteUntil = duration ? Date.now() + duration : null;
+                
+                try {
+                    await database.ref('muted/' + username).set({
+                        mutedBy: currentUser.username,
+                        reason: reason,
+                        timestamp: Date.now(),
+                        muteUntil: muteUntil
+                    });
+                    
+                    const durationText = muteUntil ? 
+                        `until ${new Date(muteUntil).toLocaleString()}` : 
+                        'permanently';
+                    
+                    await database.ref('chat').push({
+                        username: 'SYSTEM',
+                        message: `${username} has been muted ${durationText} by admin. Reason: ${reason}`,
+                        timestamp: Date.now()
+                    });
+                    
+                    showNotification(`Muted ${username}`);
+                    await refreshAdminPanel();
+                    document.body.removeChild(modal);
+                } catch (error) {
+                    console.error('Failed to mute user:', error);
+                    showNotification('Failed to mute user');
+                }
+            };
+            
+            // Handle cancel
+            document.getElementById('cancelMute').onclick = () => {
+                document.body.removeChild(modal);
+            };
         }
 
         async function unmuteUser(username) {
@@ -1669,34 +1723,95 @@ al <!DOCTYPE html>
 
         async function deleteUserAccount(username) {
             if (currentUser.username !== 'admin') return;
-            if (!confirm(`Delete account "${username}"? This cannot be undone!`)) return;
             
-            try {
-                // Find and delete user
-                const usersSnapshot = await database.ref('users').once('value');
-                const users = usersSnapshot.val();
+            // Create modal for delete reason
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: #2a2a2a; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+                    <h3 style="color: #ff4444; margin: 0 0 20px 0;">⚠️ Delete Account: ${username}</h3>
+                    
+                    <p style="color: #ccc; margin-bottom: 20px;">This action CANNOT be undone! The user will lose all their data.</p>
+                    
+                    <label style="color: #ccc; display: block; margin-bottom: 8px;">Reason for deletion:</label>
+                    <textarea id="deleteReason" placeholder="Why are you deleting this account?" 
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #444; 
+                        border-radius: 6px; color: #fff; font-size: 14px; min-height: 80px; resize: vertical;"
+                        maxlength="200"></textarea>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button id="confirmDelete" style="flex: 1; padding: 12px; background: #ff0000; 
+                            border: none; border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer;">
+                            Delete Account
+                        </button>
+                        <button id="cancelDelete" style="flex: 1; padding: 12px; background: #444; 
+                            border: none; border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle confirm
+            document.getElementById('confirmDelete').onclick = async () => {
+                const reason = document.getElementById('deleteReason').value.trim() || 'No reason provided';
                 
-                for (const uid in users) {
-                    if (users[uid].username === username) {
-                        await database.ref('users/' + uid).remove();
-                        await database.ref('muted/' + username).remove();
-                        await database.ref('online/' + username).remove();
-                        
-                        await database.ref('chat').push({
-                            username: 'SYSTEM',
-                            message: `${username}'s account has been deleted by admin`,
-                            timestamp: Date.now()
-                        });
-                        
-                        showNotification(`Deleted ${username}'s account`);
-                        await refreshAdminPanel();
-                        break;
+                try {
+                    // Find and delete user
+                    const usersSnapshot = await database.ref('users').once('value');
+                    const users = usersSnapshot.val();
+                    
+                    for (const uid in users) {
+                        if (users[uid].username === username) {
+                            // Log the deletion
+                            await database.ref('moderation-log').push({
+                                action: 'delete_account',
+                                targetUser: username,
+                                moderator: currentUser.username,
+                                reason: reason,
+                                timestamp: Date.now()
+                            });
+                            
+                            await database.ref('users/' + uid).remove();
+                            await database.ref('muted/' + username).remove();
+                            await database.ref('online/' + username).remove();
+                            
+                            await database.ref('chat').push({
+                                username: 'SYSTEM',
+                                message: `${username}'s account has been deleted by admin. Reason: ${reason}`,
+                                timestamp: Date.now()
+                            });
+                            
+                            showNotification(`Deleted ${username}'s account`);
+                            await refreshAdminPanel();
+                            document.body.removeChild(modal);
+                            break;
+                        }
                     }
+                } catch (error) {
+                    console.error('Failed to delete account:', error);
+                    showNotification('Failed to delete account');
                 }
-            } catch (error) {
-                console.error('Failed to delete account:', error);
-                showNotification('Failed to delete account');
-            }
+            };
+            
+            // Handle cancel
+            document.getElementById('cancelDelete').onclick = () => {
+                document.body.removeChild(modal);
+            };
         }
 
         async function showAdminPanel() {
@@ -1727,14 +1842,40 @@ al <!DOCTYPE html>
                     if (user.username === 'admin') continue;
                     
                     userCount++;
-                    const isMuted = muted[user.username] === true;
+                    const muteData = muted[user.username];
+                    const isMuted = !!muteData;
+                    
+                    // Check if mute expired
+                    const muteExpired = muteData && muteData.muteUntil && Date.now() > muteData.muteUntil;
+                    if (muteExpired) {
+                        await database.ref('muted/' + user.username).remove();
+                    }
                     
                     const userEl = document.createElement('div');
                     userEl.className = 'admin-user';
+                    
+                    let muteInfo = '';
+                    if (isMuted && !muteExpired) {
+                        const mutedTime = new Date(muteData.timestamp).toLocaleString();
+                        const expiryText = muteData.muteUntil ? 
+                            `Until: ${new Date(muteData.muteUntil).toLocaleString()}` : 
+                            'Permanent';
+                        muteInfo = `
+                            <div style="font-size: 11px; color: #ff6666; margin-top: 4px;">
+                                🔇 Muted on ${mutedTime}<br>
+                                ${expiryText}<br>
+                                Reason: ${escapeHtml(muteData.reason || 'No reason')}
+                            </div>
+                        `;
+                    }
+                    
                     userEl.innerHTML = `
-                        <div class="admin-user-name ${isMuted ? 'muted' : ''}">${escapeHtml(user.username)} ${isMuted ? '🔇' : ''}</div>
+                        <div>
+                            <div class="admin-user-name ${isMuted && !muteExpired ? 'muted' : ''}">${escapeHtml(user.username)} ${isMuted && !muteExpired ? '🔇' : ''}</div>
+                            ${muteInfo}
+                        </div>
                         <div class="admin-actions">
-                            ${isMuted ? 
+                            ${isMuted && !muteExpired ? 
                                 `<button class="admin-btn success" onclick="unmuteUser('${escapeHtml(user.username)}')">Unmute</button>` :
                                 `<button class="admin-btn warning" onclick="muteUser('${escapeHtml(user.username)}')">Mute</button>`
                             }
@@ -1756,4 +1897,3 @@ al <!DOCTYPE html>
     </script>
 </body>
 </html>
-
