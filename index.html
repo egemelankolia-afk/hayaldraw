@@ -381,7 +381,7 @@
         .chat-container {
             position: fixed;
             bottom: 90px;
-            right: 20px;
+            left: 20px;
             width: 350px;
             height: 400px;
             background: rgba(40, 40, 40, 0.95);
@@ -523,7 +523,7 @@
         .chat-toggle {
             position: fixed;
             bottom: 20px;
-            right: 400px;
+            left: 20px;
             width: 60px;
             height: 60px;
             background: #4a7fff;
@@ -1084,6 +1084,25 @@
             // Start polling for online users
             setInterval(updateOnlinePlayersList, 5000);
             updateOnlinePlayersList();
+
+            // === CHAT INITIALIZATION ===
+            // Show chat toggle button
+            document.getElementById('chatToggle').style.display = 'flex';
+            
+            // Setup chat listeners
+            setupChatListeners();
+            await checkMuteStatus();
+            
+            // Show admin panel if admin user
+            if (currentUser.username === 'admin') {
+                await showAdminPanel();
+                // Announce admin joined
+                await database.ref('chat').push({
+                    username: 'SYSTEM',
+                    message: '🛡️ Admin has joined the server',
+                    timestamp: Date.now()
+                });
+            }
         }
 
         // Setup Firebase real-time listeners
@@ -1753,29 +1772,6 @@
             }
         }
 
-        // Add chat initialization to startApp
-        const originalStartApp = startApp;
-        startApp = async function() {
-            await originalStartApp();
-            
-            // Show chat toggle
-            document.getElementById('chatToggle').style.display = 'flex';
-            
-            // Setup chat
-            setupChatListeners();
-            await checkMuteStatus();
-            
-            // Show admin panel if admin
-            if (currentUser.username === 'admin') {
-                await showAdminPanel();
-                // Send admin login message
-                await database.ref('chat').push({
-                    username: 'SYSTEM',
-                    message: '🛡️ Admin has joined the server',
-                    timestamp: Date.now()
-                });
-            }
-        };
     </script>
 </body>
 </html>
